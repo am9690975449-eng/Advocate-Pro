@@ -1,1 +1,44 @@
+name: Build Advocate Pro APK
 
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs: 
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Unzip Android Project
+        run: |
+          unzip -o Advocate_Pro_APK_Build_Kit.zip -d project
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build APK
+        run: |
+          PROJECT_DIR=$(find project -name settings.gradle -printf '%h\n' | head -n 1)
+          gradle -p "$PROJECT_DIR" assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Advocate-Pro-APK
+          path: project/**/build/outputs/apk/debug/*.apk
